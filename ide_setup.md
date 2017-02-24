@@ -17,7 +17,8 @@ and Jython.
 
 To install the JRE, just go to the [Oracle download site](http://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html),
 accept the license, and download the respective installation package for your
-platform:
+platform (take the x64 package if you have a 64 bit computer and the x86 package
+if you have a 32 bit computer):
 
 ![Java installation packages](images/pydev_java_installation.png)
 
