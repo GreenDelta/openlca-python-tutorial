@@ -188,3 +188,28 @@ if __name__ == '__main__':
     db.close()
     
 ```
+
+### Using the sequential solver
+
+```python
+import org.openlca.core.math.CalculationSetup as Setup
+import org.openlca.app.db.Cache as Cache
+import org.openlca.core.math.SystemCalculator as Calculator
+import org.openlca.core.results.ContributionResultProvider as Provider
+import org.openlca.app.results.ResultEditorInput as EditorInput
+import org.openlca.eigen.solvers.SequentialSolver as Solver
+import org.openlca.app.util.Editors as Editors
+
+solver = Solver(1e-12, 1000000)
+solver.setBreak(0, 1)
+system = olca.getSystem('preparation')
+setup = Setup(system)
+calculator = Calculator(Cache.getMatrixCache(), solver)
+result = calculator.calculateContributions(setup)
+provider = Provider(result, Cache.getEntityCache())
+input = EditorInput.create(setup, provider)
+Editors.open(input, "QuickResultEditor")
+
+for i in solver.iterations:
+  print i
+```
