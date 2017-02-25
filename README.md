@@ -4,7 +4,9 @@ This tutorial explains the usage of the openLCA API from Python ...
 
 ## Content
 * ...
+* [The basic data model](./data_model.md)
 * [Setting up a development environment](./ide_setup.md)
+* [Examples](./examples.md)
 
 
 ## Hello world!
