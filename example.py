@@ -41,14 +41,28 @@ steel = util.create_flow(db, 'Steel', mass)
 co2 = util.create_flow(db, 'CO2', mass, 
                        flow_type=model.FlowType.ELEMENTARY_FLOW)
 
-process = model.Process()
-process.name = 'Steel production'
-steel_output = util.create_exchange(steel, 1.0)
-process.exchanges.add(steel_output)
-process.exchanges.add(util.create_exchange(co2, 42))
-process.quantitativeReference = steel_output
+steel_production = util.find(db, model.Process, 'Steel production')
+if steel_production is None:
+    steel_production = model.Process()
+    steel_production.name = 'Steel production'
+    steel_output = util.create_exchange(steel, 1.0)
+    steel_production.exchanges.add(steel_output)
+    steel_production.exchanges.add(util.create_exchange(co2, 42))
+    steel_production.quantitativeReference = steel_output
+    util.insert(db, steel_production)
 
-util.insert(db, process)
+product = util.create_flow(db, 'Product', mass)
+manufacturing = util.find(db, model.Process, 'Manufacturing')
+if manufacturing is None:
+    manufacturing = model.Process()
+    manufacturing.name = 'Manufacturing'
+    product_output = util.create_exchange(product, 1.0)
+    manufacturing.exchanges.add(product_output)
+    manufacturing.quantitativeReference = product_output
+    steel_input = util.create_exchange(steel, 0.5, is_input=True)
+    steel_input.defaultProviderId = steel_production.id
+    manufacturing.exchanges.add(steel_input)
+    util.insert(db, manufacturing)
 
 db.close()
 
