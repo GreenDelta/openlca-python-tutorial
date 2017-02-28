@@ -67,7 +67,7 @@ kg.conversionFactor = 1.0
 unitsOfMass = model.UnitGroup()
 unitsOfMass.name = 'Units of mass'
 unitsOfMass.referenceUnit = kg
-unitsOfMass.units.append(kg)
+unitsOfMass.units.add(kg)
 ```
 
 ### Flows and flow properties
@@ -152,7 +152,7 @@ f.referenceFlowProperty = mass
 massFactor = model.FlowPropertyFactor()
 massFactor.conversionFactor = 1.0
 massFactor.flowProperty = mass
-f.flowPropertyFactors.append(massFactor)
+f.flowPropertyFactors.add(massFactor)
 ```
 
 ### Processes
@@ -194,6 +194,6 @@ p.name = 'Aluminium smelting'
 output = model.Exchange()  # liquid aluminium
 output.input = False
 output.amountValue = 1000  # kg
-p.exchanges.append(output)
+p.exchanges.add(output)
 p.quantitativeReference = output
 ```
