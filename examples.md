@@ -72,6 +72,13 @@ def insert(db, value):
 def delete_all(db, clazz):
     dao = Daos.createBaseDao(db, clazz)
     dao.deleteAll()
+
+def find(db, clazz, name):
+    """ Find something by name"""
+    dao = Daos.createBaseDao(db, clazz)
+    for item in dao.getAll():
+        if item.name == name:
+            return item
 ```
 
 ### Create a process
