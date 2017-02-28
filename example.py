@@ -2,7 +2,7 @@ from org.openlca.core.database.derby import DerbyDatabase
 from java.io import File
 import org.openlca.core.model as model
 from org.openlca.core.database import UnitGroupDao, FlowPropertyDao, CategoryDao,\
-    FlowDao, Daos
+    FlowDao, Daos, EntityCache
 from java.util import UUID, Date
 from org.openlca.core.model import FlowPropertyFactor
 
@@ -12,6 +12,7 @@ from org.openlca.core.math import CalculationSetup, SystemCalculator
 from org.openlca.eigen import NativeLibrary
 from org.openlca.eigen.solvers import DenseSolver
 from org.openlca.core.matrix.cache import MatrixCache
+from org.openlca.core.results import FullResultProvider
 
 folder = 'C:/Users/Besitzer/openLCA-data-1.4/databases/example_db1'
 db = DerbyDatabase(File(folder))
@@ -105,8 +106,21 @@ m_cache = MatrixCache.createEager(db)
 setup = CalculationSetup(system)
 calculator = SystemCalculator(m_cache, solver)
 result = calculator.calculateFull(setup)
-print result.totalFlowResults
 
+e_cache = EntityCache.create(db)
+result_provider = FullResultProvider(result, e_cache)
 
+import csv
+
+csv_file = open('result.csv', 'wb')
+writer = csv.writer(csv_file)
+
+for fd in result_provider.flowDescriptors:
+    for pd in result_provider.processDescriptors:
+        val = result_provider.getSingleFlowResult(pd, fd)
+        writer.writerow([pd.name, fd.name, val.value])
+        print pd.name, fd.name, val.value
+
+csv_file.close()
 db.close()
 
