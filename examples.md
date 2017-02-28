@@ -84,19 +84,20 @@ def find(db, clazz, name):
 ### Create a process
 
 ```python
-from org.openlca.core.model import Process, Exchange, Flow
+process = model.Process()
+process.name = 'Steel production'
 
-if __name__ == '__main__':
-    process = Process()
-    process.name = 'Steel production'
-    e = Exchange()
-    process.exchanges.add(e)
-    e.amountValue = 42.0
-    steel = Flow()
-    steel.name = 'Steel'
-    e.flow = steel
-    # ...
-    print process.exchanges[0].flow.name
+steel_output = model.Exchange()
+steel_output.input = False
+steel_output.flow = flow
+steel_output.unit = kg
+steel_output.amountValue = 1.0
+steel_output.flowPropertyFactor = flow.getReferenceFactor()
+
+process.exchanges.add(steel_output)
+process.quantitativeReference = steel_output
+
+util.insert(db, process)
 ```
 
 
