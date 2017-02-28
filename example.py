@@ -8,6 +8,10 @@ from org.openlca.core.model import FlowPropertyFactor
 
 import util
 from org.openlca.core.matrix import ProductSystemBuilder
+from org.openlca.core.math import CalculationSetup, SystemCalculator
+from org.openlca.eigen import NativeLibrary
+from org.openlca.eigen.solvers import DenseSolver
+from org.openlca.core.matrix.cache import MatrixCache
 
 folder = 'C:/Users/Besitzer/openLCA-data-1.4/databases/example_db1'
 db = DerbyDatabase(File(folder))
@@ -93,6 +97,15 @@ if system is None:
     # see: http://greendelta.github.io/olca-modules/olca-core/apidocs/index.html
     # build = ProductSystemBuilder(...)
     # ProductSystemBuilder.autoComplete(system)
+
+NativeLibrary.loadFromDir(File('native_lib'))
+solver = DenseSolver()
+m_cache = MatrixCache.createEager(db)
+
+setup = CalculationSetup(system)
+calculator = SystemCalculator(m_cache, solver)
+result = calculator.calculateFull(setup)
+print result.totalFlowResults
 
 
 db.close()
