@@ -114,7 +114,14 @@ NativeLibrary.loadFromDir(File('native_lib'))
 solver = DenseSolver()
 m_cache = MatrixCache.createEager(db)
 
+
+redef = model.ParameterRedef()
+redef.value = 10
+redef.name = 'param'
+
 setup = CalculationSetup(system)
+setup.parameterRedefs.add(redef)
+
 calculator = SystemCalculator(m_cache, solver)
 result = calculator.calculateFull(setup)
 
@@ -131,6 +138,12 @@ for fd in result_provider.flowDescriptors:
         val = result_provider.getSingleFlowResult(pd, fd)
         writer.writerow([pd.name, fd.name, val.value])
         print pd.name, fd.name, val.value
+
+import random
+for i in range(1, 10):
+    redef.value = 42 * random.random()
+    result = calculator.calculateFull(setup)
+    print result.totalFlowResults
 
 csv_file.close()
 db.close()
