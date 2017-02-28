@@ -1,5 +1,34 @@
 ## Examples
 
+### Create a unit and unit group
+
+```python
+from org.openlca.core.database.derby import DerbyDatabase
+from java.io import File
+import org.openlca.core.model as model
+from org.openlca.core.database import UnitGroupDao, FlowPropertyDao
+from java.util import UUID
+
+# path to our database
+folder = 'C:/Users/Besitzer/openLCA-data-1.4/databases/example_db1'
+db = DerbyDatabase(File(folder))
+
+# unit and unit group
+kg = model.Unit()
+kg.name = 'kg'
+kg.conversionFactor = 1.0
+
+mass_units = model.UnitGroup()
+mass_units.name = 'Units of mass'
+mass_units.units.add(kg)
+mass_units.referenceUnit = kg
+mass_units.refId = UUID.randomUUID().toString()
+
+# create a data access object and insert it in the database
+dao = UnitGroupDao(db)
+dao.insert(mass_units)
+```
+
 ### Create a process
 
 ```python
