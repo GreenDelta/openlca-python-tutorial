@@ -64,5 +64,27 @@ if manufacturing is None:
     manufacturing.exchanges.add(steel_input)
     util.insert(db, manufacturing)
 
+system = model.ProductSystem()
+system.name = 'My System'
+
+system.referenceProcess = manufacturing
+qref = manufacturing.quantitativeReference
+system.referenceExchange = qref
+system.targetAmount = 1000
+system.targetFlowPropertyFactor = qref.flowPropertyFactor
+system.targetUnit = qref.unit
+
+system.getProcesses().add(manufacturing.id)
+system.getProcesses().add(steel_production.id)
+
+link = model.ProcessLink()
+link.providerId = steel_production.id
+link.flowId = steel.id
+link.processId = manufacturing.id
+link.exchangeId = util.find_exchange(steel, manufacturing).id
+system.processLinks.add(link)
+
+util.insert(db, system)
+
 db.close()
 

@@ -49,6 +49,7 @@ def create_exchange(flow, amount=1.0, is_input=False):
     e.flowPropertyFactor = flow.getReferenceFactor()
     return e
     
-    
-
-
+def find_exchange(flow, process):
+    for e in process.exchanges:
+        if e.flow == flow:
+            return e    
