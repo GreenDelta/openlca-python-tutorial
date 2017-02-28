@@ -61,6 +61,18 @@ flow.flowPropertyFactors.add(fp_factor)
 FlowDao(db).insert(flow)
 ```
 
+### Create generic database functions
+
+```python
+from org.openlca.core.database import Daos
+
+def insert(db, value):
+    Daos.createBaseDao(db, value.getClass()).insert(value)
+
+def delete_all(db, clazz):
+    dao = Daos.createBaseDao(db, clazz)
+    dao.deleteAll()
+```
 
 ### Create a process
 
