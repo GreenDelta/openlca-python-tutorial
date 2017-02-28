@@ -40,6 +40,28 @@ fpDao = FlowPropertyDao(db)
 fpDao.insert(mass)
 ```
 
+### Create a flow with category
+
+```python
+category = model.Category()
+category.refId = UUID.randomUUID().toString();
+category.name = 'products'
+category.modelType = model.ModelType.FLOW
+CategoryDao(db).insert(category)
+
+flow = model.Flow()
+flow.name = 'Steel'
+flow.category = category
+flow.referenceFlowProperty = mass
+
+fp_factor = FlowPropertyFactor()
+fp_factor.flowProperty = mass
+fp_factor.conversionFactor = 1.0
+flow.flowPropertyFactors.add(fp_factor)
+FlowDao(db).insert(flow)
+```
+
+
 ### Create a process
 
 ```python
