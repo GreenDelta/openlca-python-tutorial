@@ -29,6 +29,17 @@ dao = UnitGroupDao(db)
 dao.insert(mass_units)
 ```
 
+### Create a flow property
+
+```python
+mass = model.FlowProperty()
+mass.name = 'Mass'
+mass.unitGroup = mass_units
+mass.flowPropertyType = model.FlowPropertyType.PHYSICAL
+fpDao = FlowPropertyDao(db)
+fpDao.insert(mass)
+```
+
 ### Create a process
 
 ```python
