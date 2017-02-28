@@ -61,6 +61,15 @@ flow.flowPropertyFactors.add(fp_factor)
 FlowDao(db).insert(flow)
 ```
 
+### Update a flow
+
+```python
+flow = util.find_or_create(db, model.Flow, 'Steel', create_flow)
+flow.description = 'My first flow ' + str(Date())
+flow = util.update(db, flow)
+```
+
+
 ### Create generic database functions
 
 ```python
