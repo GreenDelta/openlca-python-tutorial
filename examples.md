@@ -304,3 +304,23 @@ Editors.open(input, "QuickResultEditor")
 for i in solver.iterations:
   print i
 ```
+
+### Using SQL
+
+```python
+from org.openlca.core.database.derby import DerbyDatabase
+from java.io import File
+from org.openlca.core.database import NativeSql
+
+folder = 'C:/Users/Besitzer/openLCA-data-1.4/databases/example_db1'
+db = DerbyDatabase(File(folder))
+
+query = 'select * from tbl_unit_groups'
+
+def fn(r):
+    print r.getString('REF_ID')
+    return True
+
+# see http://greendelta.github.io/olca-modules/olca-core/apidocs/org/openlca/core/database/NativeSql.html
+NativeSql.on(db).query(query, fn)
+```
