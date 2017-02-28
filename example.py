@@ -7,6 +7,7 @@ from java.util import UUID, Date
 from org.openlca.core.model import FlowPropertyFactor
 
 import util
+from org.openlca.core.matrix import ProductSystemBuilder
 
 folder = 'C:/Users/Besitzer/openLCA-data-1.4/databases/example_db1'
 db = DerbyDatabase(File(folder))
@@ -64,27 +65,35 @@ if manufacturing is None:
     manufacturing.exchanges.add(steel_input)
     util.insert(db, manufacturing)
 
-system = model.ProductSystem()
-system.name = 'My System'
+system = util.find(db, model.ProductSystem, 'My System')
+if system is None:
+    system = model.ProductSystem()
+    system.name = 'My System'
+    
+    system.referenceProcess = manufacturing
+    qref = manufacturing.quantitativeReference
+    system.referenceExchange = qref
+    system.targetAmount = 1000
+    system.targetFlowPropertyFactor = qref.flowPropertyFactor
+    system.targetUnit = qref.unit
+    
+    system.getProcesses().add(manufacturing.id)
+    system.getProcesses().add(steel_production.id)
+    
+    link = model.ProcessLink()
+    link.providerId = steel_production.id
+    link.flowId = steel.id
+    link.processId = manufacturing.id
+    link.exchangeId = util.find_exchange(steel, manufacturing).id
+    system.processLinks.add(link)
+    
+    util.insert(db, system)
+    
+    # you could also use the auto-complete function:
+    # see: http://greendelta.github.io/olca-modules/olca-core/apidocs/index.html
+    # build = ProductSystemBuilder(...)
+    # ProductSystemBuilder.autoComplete(system)
 
-system.referenceProcess = manufacturing
-qref = manufacturing.quantitativeReference
-system.referenceExchange = qref
-system.targetAmount = 1000
-system.targetFlowPropertyFactor = qref.flowPropertyFactor
-system.targetUnit = qref.unit
-
-system.getProcesses().add(manufacturing.id)
-system.getProcesses().add(steel_production.id)
-
-link = model.ProcessLink()
-link.providerId = steel_production.id
-link.flowId = steel.id
-link.processId = manufacturing.id
-link.exchangeId = util.find_exchange(steel, manufacturing).id
-system.processLinks.add(link)
-
-util.insert(db, system)
 
 db.close()
 
