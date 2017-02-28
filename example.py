@@ -47,13 +47,24 @@ steel = util.create_flow(db, 'Steel', mass)
 co2 = util.create_flow(db, 'CO2', mass, 
                        flow_type=model.FlowType.ELEMENTARY_FLOW)
 
+param = util.find(db, model.Parameter, 'param')
+if param is None:
+    param = model.Parameter()
+    param.name = 'param'
+    param.scope = model.ParameterScope.GLOBAL
+    param.inputParameter = True
+    param.value = 42.0
+    util.insert(db, param)
+
 steel_production = util.find(db, model.Process, 'Steel production')
 if steel_production is None:
     steel_production = model.Process()
     steel_production.name = 'Steel production'
     steel_output = util.create_exchange(steel, 1.0)
     steel_production.exchanges.add(steel_output)
-    steel_production.exchanges.add(util.create_exchange(co2, 42))
+    co2_output = util.create_exchange(co2, 42)
+    co2_output.amountFormula = '0.5 * param'
+    steel_production.exchanges.add(co2_output)
     steel_production.quantitativeReference = steel_output
     util.insert(db, steel_production)
 
