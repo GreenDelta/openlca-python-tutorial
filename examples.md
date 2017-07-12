@@ -324,3 +324,38 @@ def fn(r):
 # see http://greendelta.github.io/olca-modules/olca-core/apidocs/org/openlca/core/database/NativeSql.html
 NativeSql.on(db).query(query, fn)
 ```
+
+### Create a location with KML data
+The example below creates a location with [KML](https://developers.google.com/kml/documentation/kmlreference)
+data and stores it in the database. 
+
+```python
+import org.openlca.util.BinUtils as BinUtils
+import org.openlca.core.database.LocationDao as Dao
+
+loc = Location()
+loc.name = 'Points'
+loc.code = 'POINTS'
+
+kml = '''
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Placemark>
+    <MultiGeometry>
+      <Point>
+        <coordinates>5.0,7.5</coordinates>
+      </Point>
+      <Point>
+        <coordinates>5.0,2.5</coordinates>
+      </Point>
+      <Point>
+        <coordinates>15.0,5.0</coordinates>
+      </Point>
+    </MultiGeometry>
+  </Placemark>
+</kml>
+'''.strip()
+
+loc.kmz = BinUtils.zip(kml)
+dao = Dao(db)
+dao.insert(loc)
+```
