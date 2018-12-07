@@ -35,8 +35,8 @@ if __name__ == '__main__':
 
 ## Relation to standard Python
 As said above, Jython runs on the JVM. It implements a great part of the
-[Python 2.7 standard library](http://www.jython.org/docs/library/indexprogress.html)
-for the JVM. For example the following script will work when you set the file
+[Python 2.7 standard library for the JVM](http://www.jython.org/docs/library/indexprogress.html).
+For example the following script will work when you set the file
 path to a valid path on your system:
 
 ```python
@@ -51,7 +51,7 @@ The Jython standard library is extracted to the `python` folder of the openLCA
 workspace which is by default located in your user directory
 `~/openLCA-data-1.4/python`. This is also the location in which you can put your
 own Jython 2.7 compatible modules. For example, when you create a file
-`tutorial.py` with the following function into this folder:
+`tutorial.py` with the following function in this folder:
 
 ```python
 # ~/openLCA-data-1.4/python/tutorial.py
@@ -74,6 +74,18 @@ An **important thing** to note is that Python modules that use C-extensions
 implemented in Jython are **not** compatible **with Jython**. If you want to
 interact from  standard CPython with openLCA (using Pandas, NumPy, etc.)
 **you can use** the [openLCA-IPC Python API](https://github.com/GreenDelta/olca-ipc.py).
+
+
+## The openLCA API
+As said above, with Jython you directly access the openLCA Java API. In Jython,
+you interact with a Java class in the same way as with a Python class. The
+openLCA API starts with a set of classes that describe the basic data model,
+like `Flow`, `Process`, `ProductSystem`. You can find these classes in the
+[olca-module repository](https://github.com/GreenDelta/olca-modules/tree/master/olca-core/src/main/java/org/openlca/core/model).
+
+```
+...
+```
 
 ## Content
 * ...
