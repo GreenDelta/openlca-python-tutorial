@@ -33,6 +33,47 @@ if __name__ == '__main__':
 ![Hello from Jython](./images/olca_hello.png)
 
 
+## Relation to standard Python
+As said above, Jython runs on the JVM. It implements a great part of the
+[Python 2.7 standard library](http://www.jython.org/docs/library/indexprogress.html)
+for the JVM. For example the following script will work when you set the file
+path to a valid path on your system:
+
+```python
+import csv
+
+with open('path/to/file.csv', 'w') as stream:
+    writer = csv.writer(stream)
+    writer.writerow(["data you", "may want", "to export",])
+```
+
+The Jython standard library is extracted to the `python` folder of the openLCA
+workspace which is by default located in your user directory
+`~/openLCA-data-1.4/python`. This is also the location in which you can put your
+own Jython 2.7 compatible modules. For example, when you create a file
+`tutorial.py` with the following function into this folder:
+
+```python
+# ~/openLCA-data-1.4/python/tutorial.py
+def the_answer():
+  f = lambda s, x: s + x if x % 2 == 0 else s
+  return reduce(f, range(0, 14))
+```
+
+You can then load it in the openLCA script editor:
+
+```python
+import tutorial
+import org.openlca.app.util.Info as Info
+
+Info.showBox('The answer is %s!' % tutorial.the_answer())
+```
+
+An **important thing** to note is that Python modules that use C-extensions
+(like NumPy and friends) or parts of the standard library that are not
+implemented in Jython are **not** compatible **with Jython**. If you want to
+interact from  standard CPython with openLCA (using Pandas, NumPy, etc.)
+**you can use** the [openLCA-IPC Python API](https://github.com/GreenDelta/olca-ipc.py).
 
 ## Content
 * ...
