@@ -116,5 +116,13 @@ etc.:
 ![Auto-complete feature](images/pydev_auto_complete.png)
 
 ### Logging
-openLCA uses [SLF4J](https://www.slf4j.org/) over 
+openLCA uses [SLF4J](https://www.slf4j.org/) over
+[Log4j](https://logging.apache.org/log4j/2.x/) for logging. 
  
+ ```properties
+log4j.rootLogger=INFO, A1
+log4j.logger.org.openlca=INFO
+log4j.appender.A1=org.apache.log4j.ConsoleAppender
+log4j.appender.A1.layout=org.apache.log4j.PatternLayout
+log4j.appender.A1.layout.ConversionPattern=%-4r [%t] %-5p %c %x - %m%n
+ ```
