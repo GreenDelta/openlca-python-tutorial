@@ -88,6 +88,20 @@ Jython interpreter:
 
 ![Run a script](images/pydev_run_script.png)
 
+When you print somthing on the console, you may get the following error:
+
+```
+console: Failed to install '': java.nio.charset.UnsupportedCharsetException: cp0.
+```
+
+This is related to [this Jython issue](http://bugs.jython.org/issue2222) which
+you could just ignore. To fix this, you can set the following parameter under
+`Run -> Run Configurations -> Arguments -> VM Arguments`:
+
+```
+-Dpython.console.encoding=UTF-8
+```
+
 To use the openLCA API in the project, right click on the project and open
 the project `Properties`. Click on the `PyDev PYTHONPATH` and in the
 `External Libraries` tab on the button `Add zip/jar/egg` button. Then select
@@ -100,3 +114,7 @@ Now you should be able to use all the IDE features of PyDev like auto-completion
 etc.: 
 
 ![Auto-complete feature](images/pydev_auto_complete.png)
+
+### Logging
+openLCA uses [SLF4J](https://www.slf4j.org/) over 
+ 

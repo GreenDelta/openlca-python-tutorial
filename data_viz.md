@@ -1,9 +1,9 @@
 # Using Visualization APIs
 The following example shows how visualization APIs can be used from the openLCA
-Python API. In the example, all output amounts of 
+Python API. In the example, all output amounts of
 `Emission to air/unspecified/Chromium VI` are collected from a database,
 transformed with `f(x) = log10(x * 1e15)` to make a nice distribution, and
-shown in a histogram using the 
+shown in a histogram using the
 [Google Chart API](https://developers.google.com/chart/interactive/docs/gallery/histogram).
 Therefore, an HTML page is generated that is loaded in a JavaFX WebView in a
 separate window.
