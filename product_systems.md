@@ -16,7 +16,7 @@ from org.openlca.app.db import Cache
 from org.openlca.app.util import Labels
 from org.openlca.core.math import CalculationSetup, CalculationType, SystemCalculator
 from org.openlca.core.matrix import ProductSystemBuilder, LinkingConfig
-from org.openlca.core.model import ProductSystem
+from org.openlca.core.model import ProcessType, ProductSystem
 from org.openlca.core.database import ImpactMethodDao, ProcessDao
 from org.eclipse.swt.widgets import Display
 
@@ -41,18 +41,18 @@ def main():
             (method.name, len(indicators)))
 
     # select the CSV file where the results should be written to
-    file = FileChooser.forExport('*.csv', 'export.csv')
-    if file is None:
+    f = FileChooser.forExport('*.csv', 'export.csv')
+    if f is None:
         print("No CSV file selected")
         return
-    print("Selected CSV file: %s" % file.absolutePath)
+    print("Selected CSV file: %s" % f.absolutePath)
     
     # init the CSV file, run calculations, and write results
-    with open(file.getAbsolutePath(), 'wb') as csvfile:
-        writer = csv.writer(csvfile)
+    with open(f.getAbsolutePath(), 'wb') as stream:
+        writer = csv.writer(stream)
 
         # write the indicators as column headers
-        header = ['Process', 'Product', 'Amount', 'Unit']
+        header = ['Process', 'Type', 'Product', 'Amount', 'Unit']
         for i in indicators:
             header.append('%s (%s)' % (i.name, i.referenceUnit))
         writer.writerow(header)
@@ -60,16 +60,20 @@ def main():
         for d in processes:
             # load the process
             process = ProcessDao(db).getForId(d.id)
+            ptype = 'Unit process'
+            if process.processType != ProcessType.UNIT_PROCESS:
+                ptype = 'LCI result'
             qref = process.quantitativeReference
+            if qref is None:
+                print('Cannot calculate %s -> no quant.ref.' % d.name)
+                continue
             row = [
                 Labels.getDisplayName(process),
+                ptype,
                 Labels.getDisplayName(qref.flow),
                 qref.amount,
                 Labels.getDisplayName(qref.unit)
             ]
-            if qref is None:
-                print('Cannot calculate %s -> no quant.ref.' % d.name)
-                continue
 
             # build the product system
             print('Build product system for: %s' % d.name)
