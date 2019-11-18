@@ -10,14 +10,10 @@ from org.openlca.app import App
 from org.openlca.app.components import FileChooser, ModelSelectionDialog
 from org.openlca.app.db import Cache
 from org.openlca.core.math import CalculationSetup, CalculationType, SystemCalculator
-from org.openlca.core.matrix import ProductSystemBuilder
-from org.openlca.core.model import ModelType, ProductSystem
-from org.openlca.core.model.descriptors import Descriptors
-from org.openlca.core.database import ImpactMethodDao, ProcessDao, ProductSystemDao
-from org.openlca.core.results import ContributionResult
+from org.openlca.core.matrix import ProductSystemBuilder, LinkingConfig
+from org.openlca.core.model import ProductSystem
+from org.openlca.core.database import ImpactMethodDao, ProcessDao
 from org.eclipse.swt.widgets import Display
-from java.lang import Long
-from java.util import UUID
 
 
 def main():
@@ -56,53 +52,30 @@ def main():
             header.append('%s (%s)' % (i.name, i.referenceUnit))
         writer.writerow(header)
 
+        # create and calculate the product systems
         for d in processes:
-            process = processDao.getForId(d.getId())
-            run(process, method, writer)
+            print('Build product system for: %s' % d.name)
+            process = ProcessDao(db).getForId(d.id)
+            builder = ProductSystemBuilder(
+                Cache.getMatrixCache(), LinkingConfig())
+            system = builder.build(process)
 
+            # run the calculation
+            print('Calculate process: %s' % d.name)
+            calculator = SystemCalculator(
+                Cache.getMatrixCache(), App.getSolver())
+            setup = CalculationSetup(
+                CalculationType.SIMPLE_CALCULATION, system)
+            setup.impactMethod = method
+            result = calculator.calculateSimple(setup)
 
-def run(process, method, writer):
-    system = createProductSystem(process)
-    system = buildProductSystem(system)
-    result = calculate(system, method)
-    export(system, method, result, writer)
-    systemDao.delete(system)
-
-
-def createProductSystem(process):
-    system = ProductSystem()
-    system.setRefId(UUID.randomUUID().toString())
-    system.setName(process.getName())
-    system.processes.add(Long(process.getId()))
-    system.referenceProcess = process
-    qRef = process.getQuantitativeReference()
-    system.referenceExchange = qRef
-    system.targetFlowPropertyFactor = qRef.flowPropertyFactor
-    system.targetUnit = qRef.unit
-    system.targetAmount = qRef.amount
-    return systemDao.insert(system)
-
-def buildProductSystem(system):
-    builder = ProductSystemBuilder(Cache.getMatrixCache())
-    return builder.autoComplete(system)
-
-def calculate(system, method):
-    calculator = SystemCalculator(Cache.getMatrixCache(), App.getSolver())
-    setup = CalculationSetup(CalculationType.SIMPLE_CALCULATION, system)
-    setup.impactMethod = Descriptors.toDescriptor(method)
-    result = calculator.calculateContributions(setup)
-    return ContributionResultProvider(result, Cache.getEntityCache())
-
-
-
-def export(system, method, result, writer):
-    row = [system.getName()]
-    for category in method.impactCategories:
-       value = result.getTotalImpactResult(Descriptors.toDescriptor(category)).value
-       row.append(value)
-    writer.writerow(row)
-
-
+            # write results
+            print('Write results for: %s' % d.name)
+            row = [process.name]
+            for i in indicators:
+                value = result.getTotalImpactResult(i)
+                row.append(value)
+            writer.writerow(row)
 
 
 if __name__ == "__main__":
