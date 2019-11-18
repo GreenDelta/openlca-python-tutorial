@@ -14,14 +14,60 @@ from org.openlca.core.matrix import ProductSystemBuilder
 from org.openlca.core.model import ModelType, ProductSystem
 from org.openlca.core.model.descriptors import Descriptors
 from org.openlca.core.database import ImpactMethodDao, ProcessDao, ProductSystemDao
-from org.openlca.core.results import ContributionResultProvider
+from org.openlca.core.results import ContributionResult
 from org.eclipse.swt.widgets import Display
 from java.lang import Long
 from java.util import UUID
 
-processDao = ProcessDao(db)
-systemDao = ProductSystemDao(db)
-methodDao = ImpactMethodDao(db)
+
+def main():
+    global db
+
+    # select the processes
+    processes = ModelSelectionDialog.multiSelect(ModelType.PROCESS)
+    if processes is None or len(processes) == 0:
+        print("No processes were selected")
+        return
+    print("Selected %i processes" % len(processes))
+
+    # select the LCIA method
+    method = ModelSelectionDialog.select(ModelType.IMPACT_METHOD)
+    if method is None:
+        print("No LCIA method was selected")
+        return
+    indicators = ImpactMethodDao(db).getCategoryDescriptors(method.id)
+    print("Selected LCIA method '%s' with %i indicators" % 
+            (method.name, len(indicators)))
+
+    # select the CSV file where the results should be written to
+    file = FileChooser.forExport('*.csv', 'export.csv')
+    if file is None:
+        print("No CSV file selected")
+        return
+    print("Selected CSV file: %s" % file.absolutePath)
+    
+    # init the CSV file, run calculations, and write results
+    with open(file.getAbsolutePath(), 'wb') as csvfile:
+        writer = csv.writer(csvfile)
+
+        # write the indicators as column headers
+        header = ['']
+        for i in indicators:
+            header.append('%s (%s)' % (i.name, i.referenceUnit))
+        writer.writerow(header)
+
+        for d in processes:
+            process = processDao.getForId(d.getId())
+            run(process, method, writer)
+
+
+def run(process, method, writer):
+    system = createProductSystem(process)
+    system = buildProductSystem(system)
+    result = calculate(system, method)
+    export(system, method, result, writer)
+    systemDao.delete(system)
+
 
 def createProductSystem(process):
     system = ProductSystem()
@@ -47,11 +93,7 @@ def calculate(system, method):
     result = calculator.calculateContributions(setup)
     return ContributionResultProvider(result, Cache.getEntityCache())
 
-def writeCategories(method, writer): 
-    row = ['']
-    for category in method.impactCategories:
-       row.append(category.getName())
-    writer.writerow(row)
+
 
 def export(system, method, result, writer):
     row = [system.getName()]
@@ -60,30 +102,9 @@ def export(system, method, result, writer):
        row.append(value)
     writer.writerow(row)
 
-def run(process, method, writer):
-    system = createProductSystem(process)
-    system = buildProductSystem(system)
-    result = calculate(system, method)
-    export(system, method, result, writer)
-    systemDao.delete(system)
 
-def main():
-    processes = ModelSelectionDialog.multiSelect(ModelType.PROCESS)
-    if processes is None or len(processes) is 0:
-        return
-    methodDescriptor = ModelSelectionDialog.select(ModelType.IMPACT_METHOD)
-    if methodDescriptor is None:
-        return
-    file = FileChooser.forExport('*.csv', 'export.csv')
-    if file is None:
-        return
-    method = methodDao.getForId(methodDescriptor.getId())
-    with open(file.getAbsolutePath(), 'wb') as csvfile:
-        writer = csv.writer(csvfile)
-        writeCategories(method, writer)
-        for descriptor in processes:
-            process = processDao.getForId(descriptor.getId())
-            run(process, method, writer)
 
-Display.getDefault().asyncExec(main)
+
+if __name__ == "__main__":
+    Display.getDefault().asyncExec(main)
 ```
