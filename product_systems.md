@@ -49,7 +49,10 @@ def main():
     
     # init the CSV file, run calculations, and write results
     with open(f.getAbsolutePath(), 'wb') as stream:
-        writer = csv.writer(stream)
+
+        # configure the CSV writer
+        # see https://docs.python.org/2/library/csv.html
+        writer = csv.writer(stream, delimiter=',')
 
         # write the indicators as column headers
         header = ['Process', 'Type', 'Product', 'Amount', 'Unit']
@@ -64,22 +67,35 @@ def main():
             if process.processType != ProcessType.UNIT_PROCESS:
                 ptype = 'LCI result'
             qref = process.quantitativeReference
+
+            # we can only create a product system from a process
+            # when it has a quantitative reference flow which is
+            # a product output or waste input
             if qref is None:
                 print('Cannot calculate %s -> no quant.ref.' % d.name)
                 continue
+            
+            # prepare the CSV row; we will calculate the results
+            # related to 1.0 unit of the reference flow
             row = [
                 Labels.getDisplayName(process),
                 ptype,
                 Labels.getDisplayName(qref.flow),
-                qref.amount,
+                1.0, # qref.amount,
                 Labels.getDisplayName(qref.unit)
             ]
 
-            # build the product system
+            # build the product system with a configuration
             print('Build product system for: %s' % d.name)
+            config = LinkingConfig()
+            # set ProcessType.UNIT_PROCESS to prefer unit processes
+            config.preferredType = ProcessType.LCI_RESULT
+            # provider linking: the other options are IGNORE and PREFER 
+            config.providerLinking = LinkingConfig.DefaultProviders.ONLY
             builder = ProductSystemBuilder(
-                Cache.getMatrixCache(), LinkingConfig())
+                Cache.getMatrixCache(), config)
             system = builder.build(process)
+            system.targetAmount = 1.0  # the reference amount
 
             # run the calculation
             print('Calculate process: %s' % d.name)
