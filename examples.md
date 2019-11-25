@@ -359,3 +359,55 @@ loc.kmz = BinUtils.zip(kml)
 dao = Dao(db)
 dao.insert(loc)
 ```
+
+### Export used elementary flows to a CSV file
+The following script exports the elementary flows that are used in processes
+of the currently activated databases into a CSV file.
+
+```python
+import csv
+from org.openlca.core.database import FlowDao, NativeSql
+from org.openlca.util import Categories
+
+
+# set the path to the resulting CSV file here
+CSV_FILE = 'C:/Users/ms/Desktop/used_elem_flows.csv'
+
+def main():
+    global db
+
+    # collect the IDs of the used elementary flows
+    # via an SQL query
+    ids = set()
+    sql = '''
+    SELECT DISTINCT f.id FROM tbl_flows f
+      INNER JOIN tbl_exchanges e ON f.id = e.f_flow
+      WHERE f.flow_type = 'ELEMENTARY_FLOW'
+    '''
+
+    def collect_ids(r):
+        ids.add(r.getLong(1))
+        return True
+
+    NativeSql.on(db).query(sql, collect_ids)
+
+    # load the flows and write them to a CSV file
+    flows = FlowDao(db).getForIds(ids)
+    with open(CSV_FILE, 'wb') as f:
+        writer = csv.writer(f, delimiter=',')
+        writer.writerow([
+            'Ref. ID', 'Name', 'Category', 'Ref. Flow property', 'Ref. Unit'
+        ])
+
+        for flow in flows:
+            writer.writerow([
+                flow.refId,
+                flow.name,
+                '/'.join(Categories.path(flow.category)),
+                flow.referenceFlowProperty.name,
+                flow.referenceFlowProperty.unitGroup.referenceUnit.name
+            ])
+
+if __name__ == '__main__':
+    main()
+```
