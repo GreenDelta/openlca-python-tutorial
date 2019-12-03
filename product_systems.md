@@ -57,7 +57,7 @@ def main():
         # write the indicators as column headers
         header = ['Process', 'Type', 'Product', 'Amount', 'Unit']
         for i in indicators:
-            header.append('%s (%s)' % (i.name, i.referenceUnit))
+            header.append(enc('%s (%s)' % (i.name, i.referenceUnit)))
         writer.writerow(header)
 
         for d in processes:
@@ -78,11 +78,11 @@ def main():
             # prepare the CSV row; we will calculate the results
             # related to 1.0 unit of the reference flow
             row = [
-                Labels.getDisplayName(process),
+                enc(Labels.getDisplayName(process)),
                 ptype,
-                Labels.getDisplayName(qref.flow),
+                enc(Labels.getDisplayName(qref.flow)),
                 1.0, # qref.amount,
-                Labels.getDisplayName(qref.unit)
+                enc(Labels.getDisplayName(qref.unit))
             ]
 
             # build the product system with a configuration
@@ -112,6 +112,10 @@ def main():
                 value = result.getTotalImpactResult(i)
                 row.append(value)
             writer.writerow(row)
+
+
+def enc(s):
+    return unicode(s).encode("utf-8")
 
 
 if __name__ == "__main__":
