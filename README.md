@@ -64,9 +64,9 @@ You can then load it in the openLCA script editor:
 
 ```python
 import tutorial
-import org.openlca.app.util.Info as Info
+import org.openlca.app.util.MsgBox as MsgBox
 
-Info.showBox('The answer is %s!' % tutorial.the_answer())
+MsgBox.info('The answer is %s!' % tutorial.the_answer())
 ```
 
 An **important thing** to note is that Python modules that use C-extensions
