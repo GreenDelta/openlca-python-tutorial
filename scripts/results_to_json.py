@@ -2,7 +2,39 @@
 # Tested with openLCA-2.0
 
 """ Create and save a JSON file with the impact result and sankey graph parameters
-of a specified product system. """
+of a specified product system.
+
+   ┌───┐
+   │ 1 │
+   └───┘
+    ▲ ▲
+    │ │
+  ┌─┘ └─┐
+  │     │  
+┌─┴─┐ ┌─┴─┐
+│ 2 │ │ 3 │
+└───┘ └───┘
+
+The Sankey graph above is stored as follow:
+"sankey": {
+        "1": {
+            "direct": float,
+            "total": float,
+            "name": string,
+            "share": float,
+            "providers": [2, 3]
+        },
+        "2": {
+            ...
+            "providers": []
+        },
+        "3": {
+            ...
+            "providers": []
+        }
+}
+
+"""
 
 import json
 
