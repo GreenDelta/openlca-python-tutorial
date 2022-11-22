@@ -47,18 +47,18 @@ PATH = '/home/francois/openLCA-data-1.4/'
 
 # Sankey diagram variables
 SANKEY_CUTOFF = 0.0
-MAX_COUNT = 5
+MAX_COUNT = 25
 
 # Impact analysis variable
 IMPACT_CUTOFF = 0.2
 
 try:
     # Calculation variables
-    PRODUCT_SYSTEM = db.get(ProductSystem, 'a1de406a-e43f-4d90-b2bc-f9a8b2fa4317')
-    METHOD = db.get(ImpactMethod, 'e74e179e-488b-4197-926c-c207a5f26b97')
+    PRODUCT_SYSTEM = db.get(ProductSystem, 'f020f7ad-7ab8-4259-8b6f-f8fd1fe67814')
+    METHOD = db.get(ImpactMethod, 'b06c6f15-21bc-4dad-a5a9-d399235a3b48')
 
     # Impact category for the Sankey diagram.
-    IMPACT_CATEGORY = db.get(ImpactCategory, '584c712e-0f3e-4cc4-8530-7929fbac594c')
+    IMPACT_CATEGORY = db.get(ImpactCategory, 'a2b9e7f7-acfb-4a53-9da6-aee10bf791a4')
 except AttributeError as e:
     print("db is not define. Make sure the script is executed into openLCA 2.0 and that"
           "the database is open.")
@@ -72,8 +72,8 @@ def get_result():  # type: () -> Tuple[LcaResult, DqResults, CalculationSetup]
 
     result = calculator.calculate(setup)
     result_item_order = ResultItemOrder.of(result)
-    dq_setup = DQCalculationSetup.of(setup)
-    dq_result = DQResult.of(db, dq_setup, result)
+    dq_setup = DQSetup.of(setup)
+    dq_result = DQResult.of(db, dq_setup, result.provider())
 
     return result, result_item_order, dq_result, setup
 
@@ -82,50 +82,52 @@ def get_impact_results(result, items, dq_result):
     # type: (LcaResult, ResultItemOrder, DqResults) -> List[str, Any]
     impact_results = []
     for impact in items.impacts():
-        processes = []
-        for process_descriptor in items.processes():
-            if result.getDirectImpactResult(process_descriptor, impact) > IMPACT_CUTOFF:
+
+        tech_flows = []
+
+        for tech_flow in items.techFlows():
+            if result.getDirectImpactOf(impact, tech_flow) > IMPACT_CUTOFF:
+                process_descriptor = tech_flow.provider()
                 process = db.get(Process, process_descriptor.id)
-                processes.append({
+                data_quality = dq_result.get(impact, tech_flow)
+                tech_flows.append({
                     'name': Labels.name(process_descriptor),
                     'category': Labels.category(process_descriptor),
-                    'impact_result': result.getDirectImpactResult(process_descriptor, impact),
+                    'impact_result': result.getDirectImpactOf(impact, tech_flow),
                     'unit': impact.referenceUnit,
                     'validFrom': process.documentation.validFrom,
                     'validUntil': process.documentation.validUntil,
-                    'data_quality': dq_result.get(impact, process_descriptor).tolist(),
+                    'data_quality': data_quality.tolist() if data_quality is not None else [],
                 })
 
-        flows = []
-        if result.hasEnviFlows:
-            class AddEnviFlowConsumer(IndexConsumer):
-                def accept(self, _, envi_flow):  # type: (int, EnviFlow) -> None
-                    if result.getTotalFlowResult(envi_flow) > IMPACT_CUTOFF:
-                        flows.append({
-                            'name': Labels.name(envi_flow),
-                            'category': Labels.category(envi_flow),
-                            'impact_result': result.getTotalFlowResult(envi_flow),
-                            'unit': impact.referenceUnit,
-                            'data_quality': dq_result.get(impact, envi_flow).tolist(),
-                        })
-                    return
+        envi_flows = []
+        for envi_flow in items.enviFlows():
+            if result.getFlowImpactOf(impact, envi_flow) > IMPACT_CUTOFF:
+                data_quality = dq_result.get(envi_flow)
 
-            result.enviIndex().each(AddEnviFlowConsumer())
+                envi_flows.append({
+                    'name': Labels.name(envi_flow),
+                    'category': Labels.category(envi_flow),
+                    'impact_result': result.getFlowImpactOf(impact, envi_flow),
+                    'unit': impact.referenceUnit,
+                    'data_quality': data_quality.tolist() if data_quality is not None else [],
+                })
 
+        data_quality = dq_result.get(impact)
         impact_results.append({
             'name': Labels.name(impact),
             'category': Labels.category(impact),
-            'impact_result': result.getTotalImpactResult(impact),
+            'impact_result': result.getTotalImpactValueOf(impact),
             'unit': impact.referenceUnit,
-            'processes': processes,
-            'envi_flows': flows,
+            'processes': tech_flows,
+            'envi_flows': envi_flows,
             'cutoff': IMPACT_CUTOFF,
-            'data_quality': dq_result.get(impact).tolist(),
+            'data_quality': data_quality.tolist() if data_quality is not None else [],
         })
     return impact_results
 
 
-def get_sankey(result):  # type: (LcaResult) -> List[str, Any]
+def get_sankey(result):  # type: (ResultProvider) -> List[str, Any]
     impact_descriptor = Descriptor.of(IMPACT_CATEGORY)
     sankey = Sankey.of(impact_descriptor, result)
     sankey = sankey.withMinimumShare(SANKEY_CUTOFF).withMaximumNodeCount(MAX_COUNT).build()
@@ -163,7 +165,7 @@ if __name__ == '__main__':
     data = {
         'impact_results': get_impact_results(result, result_item_order, dq_result),
         'dq_result_info': get_dq_result(dq_result),
-        'sankey': get_sankey(result),
+        'sankey': get_sankey(result.provider()),
     }
 
     print("Saving the JSON...")
