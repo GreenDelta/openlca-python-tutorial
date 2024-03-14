@@ -95,8 +95,6 @@ def get_impact_results(result, items, dq_result):
                     'category': Labels.category(process_descriptor),
                     'impact_result': result.getDirectImpactOf(impact, tech_flow),
                     'unit': impact.referenceUnit,
-                    'validFrom': process.documentation.validFrom,
-                    'validUntil': process.documentation.validUntil,
                     'data_quality': data_quality.tolist() if data_quality is not None else [],
                 })
 
