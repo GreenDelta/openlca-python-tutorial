@@ -1,6 +1,0 @@
-[book]
-authors = ["François Le Rall"]
-language = "en"
-multilingual = false
-src = "src"
-title = "openLCA Python Documentation"
